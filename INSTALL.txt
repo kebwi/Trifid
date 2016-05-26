@@ -1,0 +1,3 @@
+This project doesn't have the conventional "automake" level of complexity (configure scripts and such), just a very simple makefile.  Assuming you have an up-to-date version of gcc on your system you should be able to build Trifid simply by typing "make" in this directory.  If you have any problems, you're on your own.  Well, you can contact me, but I may or may not want to spend too much time helping you configure your system.
+
+Read the README to learn how to use Trifid.  In addition, after building Trifid, you can run the QUICKSTART bash shell script to get a basic feel for the program's purpose and capabilities.  The comments in the script explain how to use it.

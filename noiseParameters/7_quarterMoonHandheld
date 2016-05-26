@@ -1,0 +1,27 @@
+# This profile represents an approximation of the Olympus SP-550UZ
+
+7quarterMoonHandheld	string	[length > 0]	filenameLabel (appended to output filename)
+
+# Environment Properties
+.1	float	(0, inf]	lux (lux shining onto the scene)
+0	float	[0, 1)		minReflectance (reflectance of an input pixel with 0 value)
+.6	float	(minRef, 1]	maxReflectance (reflectance of an input pixel with max value)
+10	float	[-100, 50]	temperatureC (every -6C halves dark current and hot pixels)
+
+# Camera Properties
+1.86	float	(0, inf]	pixelPitchMicrons (length of one side of a presumably square pixel)
+6000	int	[1, inf]	fullWellCapacity (max electrons per pixel before saturation)
+15	float	(0, fullWell)	readNoise (noise floor, mean circuit electrons generated per pixel)
+.1	float	[0, inf]	ampVarFactor (amp gain noise severity)
+300	float	[0, inf]	darkCurrentRoomTempElectronsPerPixPerSec (room temp is 20C)
+1	float	[0, inf]	hotPixelFactor (hot pixel severity)
+images/hotPixelMask512.pgm	string	["NONE" or pgm_file_name]	hotPixelMask (pgm file, same dimensions as input image)
+.5	float	[0, 1]		quantumEfficiencyRed
+.5	float	[0, 1]		quantumEfficiencyGreen
+.5	float	[0, 1]		quantumEfficiencyBlue
+0	float	[0, inf]	ampGlowElectronsPerPixPerSec (not fully implemented, leave 0, see README)
+
+# Camera Settings
+.05	float	(0, inf]	exposureSecs
+-1	float	[-1][1, inf]	ampGain (-1 flag indicates auto-gain, i.e., auto-ISO)
+2.8	float	(0, inf]	focalRatio (illuminance reduces with the square of this value)

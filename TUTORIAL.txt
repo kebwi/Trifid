@@ -1,0 +1,60 @@
+This file walks you through a basic session with Trifid such that all of the fundamental capabilities are demonstrated.  Namely:
+
+    -- Generating a few noizy images from a baseline image
+    -- Investigating the noise statistics of the images against the baseline image
+    -- Denoising the noisy images with wavelet shrinkage
+
+This package should have come with three sample images, gazebo.ppm, river.ppm, and HubbleM81.ppm.  This tutorial will use gazebo, but it really doesn't matter.
+
+First, build Trifid.  If you can't get that far, don't bother proceeding with the tutorial.
+
+Begin by opening and looking at the gazebo image just to get a feel for what you are working with.  How pretty.
+
+We will start by "taking some photos" of this scene using a simulated digital camera under a variety of illumination circumstances.  First, we will take a picture under bright daylight.  Type the following:
+
+    % ./Trifid -N noiseParameters/1_day -b images/gazebo.ppm
+
+Each item separated by whitespace is a "command-line argument".  The first argument is the name of the program, Trifid...obviously.  The remaining arguments are parameters to the program which will assign or modify its behavior.  Crucially, Trifid can run in a few different modes.  Therefore, there must always be an argument which will indicate to Trifid what task it is performing, i.e., what mode it should run in.  In the example above, the mode argument is "-N" which puts Trifid in "add noise" mode (The README has detailed descriptions of all command-line arguments for Trifid).  This mode requires a noise parameters file which will describe the characteristics of the simulated imaging session.  This name of this file must immediately follow the "-N" argument.  Thus, "1_day" is the name of the noise parameters file ("noiseParameters/" is simply a directory to look inside for that file).  Next we see the "-b" argument.  This indicates to Trifid that it should perform Bayer mosaicing on the input image and should run Bayer demosaicing on the output image.  A Bayer mosaic is a checkerboard pattern in which half of the squares are green and the remaining half is split equally between red and blue.  Google "Bayer mosaic" for more information.  The reason we might want to do this is that most digital cameras do something very similar (or identical) when capturing images and modeling digital cameras is what Trifid is all about!  The final argument, "gazebo.ppm", is the name of the input image.
+
+The result of the command above will the creation of a new image file:
+
+    gazebo_b_n-1day_db-ap_out.ppm
+
+Let's look at that carefully.  The filename presents a chronology of the stages of processing that were performed.  Each stage is separated by an underscore and parameters detailing a particular stage are separated by a hyphen.  The filename begins with the root of the original input filename, "gazebo".  The next parameter is "b" which indicates that the image underwent Bayer mosaicing.  This makes sense since we passed the "-b" argument to Trifid.  The next parameter is "n-1day".  The "n" indicates that simulated noise was added (a simulated photo was generated) and the "1day" indicates the tag in the noise parameters file that was used so we can find that file again.  Note that the tag is not necessarily the name of the noise parameters file although in this example the two are similar.  The tag is a string in the noise parameters file.  The next parameter is "db-ap".  The "db" indicates that the image underwent Bayer *DE*mosaicing and the "ap" indicates that the Bayer demosaicing method employeed was alternating projections.  Finally we see "out" which is a universal tail appended to all output images.  And finally finally we see ".ppm", the file extension indicating that this file is a ppm image file.
+
+Let's generate two more simulated photos:
+
+    % ./Trifid -N noiseParameters/3_eveningHandheld -b images/gazebo.ppm
+    % ./Trifid -N noiseParameters/5_fullMoonHandheld -b images/gazebo.ppm
+
+...the results of which will be two more image files:
+    gazebo_b_n-3eveningHandheld_db-ap_out.ppm
+    gazebo_b_n-5fullMoonHandheld_db-ap_out.ppm
+
+Open and look at the three resulting images.  You will see that they get progressively noisier as we simulate progressively lower-light circumstances.  Next, investigate the noise statistics more precisely by typing the following:
+
+    % ./Trifid --rgbStat images/gazebo.ppm gazebo_b_n-1day_db-ap_out.ppm gazebo_b_n-3eveningHandheld_db-ap_out.ppm gazebo_b_n-5fullMoonHandheld_db-ap_out.ppm
+
+Here it is broken down on a per-command-line-argument basis:
+
+    -- ./Trifid
+    -- --rgbStat
+    -- images/gazebo.ppm
+    -- gazebo_b_n-1day_db-ap_out.ppm
+    -- gazebo_b_n-3eveningHandheld_db-ap_out.ppm
+    -- gazebo_b_n-5fullMoonHandheld_db-ap_out.ppm
+
+As usual, the first argument is the name of the program, Trifid.  The second argument always sets Trifid's mode, in this case "color statistics mode".  This mode requires a series of images as arguments.  At least two images must be supplied and the first image will be assumed, by definition, to be the baseline against which statistics are generated (it will be considered "perfectly noise-free").  All remaining images passed in will be assumed to be noisy versions of the baseline image.  Trifid will then dump a lot of data describing the PSNR and Lab Delta E noise statistics of each image.
+
+Next we will experiment a little bit with wavelet shrinkage denoising.  Try this:
+
+    % ./Trifid -n -s 0A.01 gazebo_b_n-3eveningHandheld_db-ap_out.ppm
+
+The "-n" argument puts Trifid in "denoising" mode.  The "-s" argument indicates a denoising parameter to follow, there followed by "0A.01", which means denoise all colors and all levels with a coefficient soft threshold value of .01 (See the README for a detailed description of the denoising parameter syntax).  Try a few variations:
+
+    % ./Trifid -n -s 0A.005 gazebo_b_n-3eveningHandheld_db-ap_out.ppm
+    % ./Trifid -n -s 0A.02 gazebo_b_n-3eveningHandheld_db-ap_out.ppm
+
+Open and look at the resulting denoised images.  The effect of denoising should be quite noticeable overall as should the variation in denoising across the set of denoised images.  Try stronger thresholds to see even more aggressive denoising in action (which will probably damage the images more than it helps.  Sometimes it can be difficult to tell subjectively which result is truly optimal in a statistical sense, i.e., which denoised result most precisely matches the original perfect noise-free image.  We might be tempted to try the "--rgbStat" argument again and this is certainly a fair idea in principle.  Unfortunately, I can tell you from experience that this won't yield very favorable results, i.e., the denoised images won't score higher than the noisy images.  This is due to the fact that wavelet shrinkage results in a significant loss of contrast to the images (shadows lost their inky blackness and hilights lose their shiny luster).  This loss of contrast has a detrimental effect on the PSNR and Lab Delta E metrics.  Nevertheless, if you manually readjust the levels on the denoised images (in some other graphics processing program), you can generate images which will, in fact, score higher than the noisy images both in PSNR and Lab Delta E.  That's exactly what we would like to see from a denoising algorithm of course.  However, since Trifid does not provide any level adjustment capability, such an experiment lies beyond the reach of this tutorial.
+
+Cheers!

@@ -1,0 +1,1 @@
+This directory contains an open source FFT library (by John Green) which was originally written and optimized for RISC processors such as the PowerPC.  It is quite old and most likely not an ideal FFT library for contemporary applications, but it is solid, compiles successfully, and runs without problems even if it is not optimal on modern machines.  Thus, I continue to use it.
